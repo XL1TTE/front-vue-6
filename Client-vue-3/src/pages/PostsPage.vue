@@ -1,25 +1,22 @@
 <script lang="ts" setup>
 import BaseTable from "../components/BaseTable.vue";
-import {
-  useCategories,
-  useDeleteCategory,
-} from "../composables/useCategories.ts";
 import { computed } from "vue";
-import type { Category } from "../types/category.ts";
 import { useFilter } from "../composables/useFilter.ts";
 import InputFilter from "../components/InputFilter.vue";
 import { createToaster } from "@meforma/vue-toaster";
+import type { Post } from "../types/posts.ts";
+import { useDeletePost, usePosts } from "../composables/usePosts.ts";
 
-const { data: categories, isSuccess, isLoading } = useCategories();
-const { mutate: deleteCategory } = useDeleteCategory();
+const { data: posts, isSuccess, isLoading } = usePosts();
+const { mutate: deletePost } = useDeletePost();
 
 const toaster = createToaster({
   position: "top-right",
   duration: 3000,
 });
 
-const handleDelete = (id: number, name: string) => {
-  deleteCategory(id, {
+const handleDelete = (slug: string, name: string) => {
+  deletePost(slug, {
     onError: (error: any) => {
       toaster.error(
         `Failed to delete "${name}": ${error.message || "Unknown error"}`,
@@ -31,11 +28,13 @@ const handleDelete = (id: number, name: string) => {
   });
 };
 
-const allCategories = computed<Category[]>(() => categories.value || []);
+const allPosts = computed<Post[]>(() => posts.value || []);
 
 const headers = [
-  { key: "id" as keyof Category, label: "ID" },
-  { key: "name" as keyof Category, label: "Название" },
+  { key: "id" as keyof Post, label: "ID" },
+  { key: "name" as keyof Post, label: "Название" },
+  { key: "content" as keyof Post, label: "Контент" },
+  { key: "image_url" as keyof Post, label: "Фото" },
 ];
 
 const actions = ["remove-button"];
@@ -52,7 +51,7 @@ const {
   name: string;
 }>();
 
-const filteredCategories = useFiltered(allCategories);
+const filteredPosts = useFiltered(allPosts);
 </script>
 
 <template>
@@ -105,7 +104,7 @@ const filteredCategories = useFiltered(allCategories);
         v-if="isSuccess"
         :actions="actions"
         :headers="headers"
-        :rows="filteredCategories"
+        :rows="filteredPosts"
       >
         <template #header-id="{ key }">
           <div class="flex flex-row items-center space-y-1 gap-2">
@@ -129,10 +128,46 @@ const filteredCategories = useFiltered(allCategories);
           </div>
         </template>
 
+        <template #image_url="{ value, row }">
+          <div class="flex items-center">
+            <div class="relative">
+              <div
+                v-if="value"
+                class="w-10 h-10 rounded-full border-2 border-gray-200 bg-gray-50 overflow-hidden flex items-center justify-center shadow-sm"
+              >
+                <img
+                  :alt="row.name || 'Image'"
+                  :src="value as string"
+                  class="w-full h-full object-cover"
+                />
+              </div>
+
+              <div
+                v-else
+                class="w-10 h-10 rounded-full bg-linear-to-br from-gray-100 to-gray-200 border-2 border-gray-300 border-dashed flex items-center justify-center text-gray-400"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </template>
+
         <template #remove-button="{ row }">
           <button
             class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-red-50 hover:bg-red-100 text-red-700 hover:text-red-900 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-1 active:bg-red-200"
-            @click="handleDelete(row.id, row.name)"
+            @click="handleDelete(row.slug, row.name)"
           >
             Remove
           </button>
