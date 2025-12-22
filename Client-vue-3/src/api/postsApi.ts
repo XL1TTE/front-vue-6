@@ -1,4 +1,3 @@
-import type { ApiResponse } from "../types/api.ts";
 import type { Post } from "../types/posts.ts";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
@@ -29,8 +28,7 @@ export const postsApi = {
 
   async getBySlug(slug: string): Promise<Post> {
     const response = await fetch(`${API_BASE_URL}/posts/${slug}`, fetchConfig);
-    const data: ApiResponse<Post> = await handleResponse(response);
-    return data.data;
+    return await handleResponse(response);
   },
 
   async create(post: Post): Promise<Post> {
@@ -39,8 +37,7 @@ export const postsApi = {
       method: "POST",
       body: JSON.stringify(post),
     });
-    const data: ApiResponse<Post> = await handleResponse(response);
-    return data.data;
+    return await handleResponse(response);
   },
 
   async update(slug: string, post: Partial<Post>): Promise<Post> {
@@ -49,8 +46,7 @@ export const postsApi = {
       method: "PUT",
       body: JSON.stringify(post),
     });
-    const data: ApiResponse<Post> = await handleResponse(response);
-    return data.data;
+    return await handleResponse(response);
   },
 
   async delete(slug: string): Promise<{ success: boolean }> {

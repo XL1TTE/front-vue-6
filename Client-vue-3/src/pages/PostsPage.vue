@@ -6,9 +6,24 @@ import InputFilter from "../components/InputFilter.vue";
 import { createToaster } from "@meforma/vue-toaster";
 import type { Post } from "../types/posts.ts";
 import { useDeletePost, usePosts } from "../composables/usePosts.ts";
+import { router } from "../router/RouterConfig.ts";
+import { useCategory } from "../composables/useCategories.ts";
 
 const { data: posts, isSuccess, isLoading } = usePosts();
+
 const { mutate: deletePost } = useDeletePost();
+
+const allPosts = computed<Post[]>(() => posts.value || []);
+
+const actions = ["remove-button", "edit-button"];
+
+const headers = [
+  { key: "id" as keyof Post, label: "ID" },
+  { key: "name" as keyof Post, label: "Название" },
+  { key: "content" as keyof Post, label: "Контент" },
+  { key: "image_url" as keyof Post, label: "Фото" },
+  { key: "category_id" as keyof Post, label: "Категория" },
+];
 
 const toaster = createToaster({
   position: "top-right",
@@ -27,17 +42,9 @@ const handleDelete = (slug: string, name: string) => {
     },
   });
 };
-
-const allPosts = computed<Post[]>(() => posts.value || []);
-
-const headers = [
-  { key: "id" as keyof Post, label: "ID" },
-  { key: "name" as keyof Post, label: "Название" },
-  { key: "content" as keyof Post, label: "Контент" },
-  { key: "image_url" as keyof Post, label: "Фото" },
-];
-
-const actions = ["remove-button"];
+const handleEdit = (slug: string, name: string) => {
+  router.push(`posts/edit/${slug}`);
+};
 
 const {
   filters,
@@ -52,6 +59,11 @@ const {
 }>();
 
 const filteredPosts = useFiltered(allPosts);
+
+const getCategory = (id: number) => {
+  const { data: category } = useCategory(id);
+  return category.value;
+};
 </script>
 
 <template>
@@ -59,11 +71,11 @@ const filteredPosts = useFiltered(allPosts);
     <div class="container mx-auto px-4 py-8">
       <div v-if="isLoading" class="loading-state">
         <div class="spinner"></div>
-        <p>Загрузка категорий...</p>
+        <p>Загрузка постов...</p>
       </div>
 
       <header class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">Категории</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2">Посты</h1>
       </header>
 
       <div
@@ -139,6 +151,7 @@ const filteredPosts = useFiltered(allPosts);
                   :alt="row.name || 'Image'"
                   :src="value as string"
                   class="w-full h-full object-cover"
+                  crossorigin="anonymous"
                 />
               </div>
 
@@ -163,6 +176,12 @@ const filteredPosts = useFiltered(allPosts);
             </div>
           </div>
         </template>
+        
+        <template #category_id="{ value }">
+          <div class="flex flex-row items-center space-y-1 gap-2">
+            {{ getCategory(value as number)?.name }}
+          </div>
+        </template>
 
         <template #remove-button="{ row }">
           <button
@@ -170,6 +189,14 @@ const filteredPosts = useFiltered(allPosts);
             @click="handleDelete(row.slug, row.name)"
           >
             Remove
+          </button>
+        </template>
+        <template #edit-button="{ row }">
+          <button
+            class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-900 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-1 active:bg-red-200"
+            @click="handleEdit(row.slug, row.name)"
+          >
+            Edit
           </button>
         </template>
       </BaseTable>

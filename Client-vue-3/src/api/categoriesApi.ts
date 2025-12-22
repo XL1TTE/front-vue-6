@@ -1,5 +1,4 @@
 import type { Category } from "../types/category.ts";
-import type { ApiResponse } from "../types/api.ts";
 
 const API_BASE_URL = "http://127.0.0.1:8000";
 
@@ -32,8 +31,7 @@ export const categoriesApi = {
       `${API_BASE_URL}/categories/${id}`,
       fetchConfig,
     );
-    const data: ApiResponse<Category> = await handleResponse(response);
-    return data.data;
+    return await handleResponse(response);
   },
 
   async create(category: Category): Promise<Category> {
@@ -42,8 +40,7 @@ export const categoriesApi = {
       method: "POST",
       body: JSON.stringify(category),
     });
-    const data: ApiResponse<Category> = await handleResponse(response);
-    return data.data;
+    return await handleResponse(response);
   },
 
   async update(id: number, category: Partial<Category>): Promise<Category> {
@@ -52,8 +49,7 @@ export const categoriesApi = {
       method: "PUT",
       body: JSON.stringify(category),
     });
-    const data: ApiResponse<Category> = await handleResponse(response);
-    return data.data;
+    return await handleResponse(response);
   },
 
   async delete(id: number): Promise<{ success: boolean }> {

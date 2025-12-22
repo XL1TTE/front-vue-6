@@ -59,7 +59,7 @@ const formatDefaultValue = (value: unknown): string => {
             class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             scope="col"
           >
-            {{`Действия`}}
+            {{ `Действия` }}
           </th>
         </tr>
       </thead>
@@ -88,7 +88,7 @@ const formatDefaultValue = (value: unknown): string => {
             :key="`actions`"
             class="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
           >
-            <div class="flex items-center">
+            <div class="flex items-center gap-2">
               <slot v-for="key in actions" :name="key" :row="row">
                 <span class="text-gray-900">
                   {{ key }}

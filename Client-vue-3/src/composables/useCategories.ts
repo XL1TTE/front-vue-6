@@ -32,8 +32,8 @@ export const useUpdateCategory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ slug, data }: { slug: string; data: Partial<Category> }) =>
-      categoriesApi.update(slug, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<Category> }) =>
+      categoriesApi.update(id, data),
     onSuccess: (updatedCategory) => {
       queryClient.invalidateQueries({ queryKey: categoryQueryKeys.lists() });
       queryClient.setQueryData(

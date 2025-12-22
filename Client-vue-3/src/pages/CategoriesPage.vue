@@ -9,6 +9,7 @@ import type { Category } from "../types/category.ts";
 import { useFilter } from "../composables/useFilter.ts";
 import InputFilter from "../components/InputFilter.vue";
 import { createToaster } from "@meforma/vue-toaster";
+import { router } from "../router/RouterConfig.ts";
 
 const { data: categories, isSuccess, isLoading } = useCategories();
 const { mutate: deleteCategory } = useDeleteCategory();
@@ -38,7 +39,7 @@ const headers = [
   { key: "name" as keyof Category, label: "Название" },
 ];
 
-const actions = ["remove-button"];
+const actions = ["remove-button", "edit-button"];
 
 const {
   filters,
@@ -53,6 +54,10 @@ const {
 }>();
 
 const filteredCategories = useFiltered(allCategories);
+
+const handleEdit = (id: number, name: string) => {
+  router.push(`categories/edit/${id}`);
+};
 </script>
 
 <template>
@@ -135,6 +140,15 @@ const filteredCategories = useFiltered(allCategories);
             @click="handleDelete(row.id, row.name)"
           >
             Remove
+          </button>
+        </template>
+
+        <template #edit-button="{ row }">
+          <button
+            class="inline-flex items-center justify-center px-4 py-2 rounded-full bg-green-50 hover:bg-green-100 text-green-700 hover:text-green-900 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-200 focus:ring-offset-1 active:bg-red-200"
+            @click="handleEdit(row.id, row.name)"
+          >
+            Edit
           </button>
         </template>
       </BaseTable>
