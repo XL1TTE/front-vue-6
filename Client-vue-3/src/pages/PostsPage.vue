@@ -8,11 +8,12 @@ import type { Post } from "../types/posts.ts";
 import { useRoute, useRouter } from "vue-router";
 import { useDeletePost, usePosts } from "../composables/usePosts.ts";
 import { useDebounceFn } from "@vueuse/core";
+import { useCategories } from "../composables/useCategories.ts";
 
 const route = useRoute();
 const router = useRouter();
 
-const searchQuery = ref(route.query.search as string || "");
+const searchQuery = ref((route.query.search as string) || "");
 
 const debouncedSearch = useDebounceFn((value: string) => {
   router.replace({
@@ -33,7 +34,15 @@ watch(
 const { data: posts, isSuccess, isLoading } = usePosts(searchQuery);
 const { mutate: deletePost } = useDeletePost();
 
-const allPosts = computed<Post[]>(() => posts.value || []);
+const { data: categories } = useCategories();
+
+const categoryMap = computed(() => {
+  const map = new Map<number, string>();
+  categories.value?.forEach((cat) => {
+    map.set(cat.id, cat.name);
+  });
+  return map;
+});
 
 const actions = ["remove-button", "edit-button"];
 
@@ -78,7 +87,7 @@ const {
   name: string;
 }>();
 
-const filteredPosts = useFiltered(allPosts);
+const filteredPosts = useFiltered(computed(() => posts.value || []));
 </script>
 
 <template>
@@ -237,6 +246,21 @@ const filteredPosts = useFiltered(allPosts);
               </div>
             </div>
           </div>
+        </template>
+
+        <template #name="{ value, row }">
+          <router-link
+            :to="{ name: 'post-details', params: { slug: row.slug } }"
+            class="flex flex-row items-center space-y-1 gap-2 font-bold text-blue-600 hover:underline"
+          >
+            {{ value }}
+          </router-link>
+        </template>
+
+        <template #category_id="{ value }">
+          <span class="px-2 py-1 bg-gray-100 rounded text-sm text-gray-700">
+            {{ categoryMap.get(value as number) || "Загрузка..." }}
+          </span>
         </template>
 
         <template #remove-button="{ row }">

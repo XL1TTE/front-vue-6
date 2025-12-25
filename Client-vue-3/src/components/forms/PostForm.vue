@@ -12,7 +12,7 @@ interface Props {
 }
 interface Emits {
   success: [post: Post];
-  cancel: [];
+  cancel: [post?: Post];
   error: [error: any];
 }
 
@@ -48,34 +48,29 @@ const previewImageUrl = computed(() => {
 
 const handleSubmit = async () => {
   const isValid = await v$.value.$validate();
-  if (!isValid) {
-    return;
-  }
+  if (!isValid) return;
 
-  if (mode === "create") {
-    await createPostMutation(form.value, {
-      onSuccess: (post: Post) => {
-        emits("success", post);
-      },
-      onError: (error: Error) => {
-        emits("error", error.message);
-      },
-    });
-  } else {
-    await updatePostMutation(
-      {
+  try {
+    if (mode === "create") {
+      const result = await createPostMutation(form.value);
+      emits("success", result);
+    } else {
+      const result = await updatePostMutation({
         slug: post!.slug,
         data: form.value,
-      },
-      {
-        onSuccess: (post: Post) => {
-          emits("success", post);
-        },
-        onError: (error: any) => {
-          emits("error", error);
-        },
-      },
-    );
+      });
+      emits("success", result);
+    }
+  } catch (error: any) {
+    emits("error", error.message);
+  }
+};
+
+const onCancel = () => {
+  if (post) {
+    emits("cancel", post);
+  } else {
+    emits("cancel");
   }
 };
 
@@ -199,7 +194,7 @@ watch(
       <button
         class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
         type="button"
-        @click="emits('cancel')"
+        @click="onCancel"
       >
         Отмена
       </button>

@@ -1,9 +1,9 @@
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 from typing import List, Optional
 from slugify import slugify
-from sqlalchemy import create_engine, Integer, String, Text, ForeignKey, select
-from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import create_engine, Integer, String, Text, ForeignKey, select, exists
 from sqlalchemy.orm import (
     DeclarativeBase,
     Mapped,
@@ -192,7 +192,13 @@ def create_post(data: PostCreate):
             raise HTTPException(400, "Category does not exist")
 
         slug = slugify(data.name)
+        
+        slug_exists = session.query(exists().where(Post.slug == slug)).scalar()
+        
+        if slug_exists:
+            raise HTTPException(status_code=400, detail="Post with this title (slug) already exists")
 
+        
         post = Post(
             name=data.name,
             slug=slug,

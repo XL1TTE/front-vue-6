@@ -13,13 +13,11 @@ const { success: notifySuccess, error: notifyError } = useToaster(
 
 const handleSuccess = (post: Post) => {
   notifySuccess(`Post was successfully created`);
-  router.push({ name: "edit-post", params: { slug: post.slug } });
+  router.push({ name: "post-details", params: { slug: post.slug } });
 };
 
 const handleError = (error: any) => {
-  notifyError(
-    `Failed to create post:": ${error || "Unknown error"}`,
-  );
+  notifyError(`Failed to create post:": ${error || "Unknown error"}`);
 };
 </script>
 

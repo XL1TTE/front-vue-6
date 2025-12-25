@@ -1,62 +1,68 @@
+import axios from "axios";
 import type { Post } from "../types/posts.ts";
 
-const API_BASE_URL = "http://127.0.0.1:8000";
-
-const fetchConfig: RequestInit = {
+const api = axios.create({
+  baseURL: "http://127.0.0.1:8000",
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
-};
+});
 
-const handleResponse = async <T>(response: Response): Promise<T> => {
-  if (!response.ok) {
-    const message = `HTTP error! status: ${response.status}`;
-    throw new Error(message);
+const handleError = (error: unknown) => {
+  if (axios.isAxiosError(error)) {
+    const serverDetail = error.response?.data?.detail;
+    const message = serverDetail || error.message;
+    throw new Error(`API Error: ${message}`);
   }
-  return response.json();
+  throw error;
 };
 
 export const postsApi = {
   async getAll(search?: string): Promise<Post[]> {
-    const url = new URL(`${API_BASE_URL}/posts`);
-
-    if (search && search.trim()) {
-      url.searchParams.append("search", search.trim());
+    try {
+      const response = await api.get<Post[]>("/posts", {
+        params: search?.trim() ? { search: search.trim() } : {},
+      });
+      return response.data;
+    } catch (error) {
+      return handleError(error);
     }
-
-    const response = await fetch(url.toString(), fetchConfig);
-    return handleResponse(response);
   },
 
   async getBySlug(slug: string): Promise<Post> {
-    const response = await fetch(`${API_BASE_URL}/posts/${slug}`, fetchConfig);
-    return await handleResponse(response);
+    try {
+      const response = await api.get<Post>(`/posts/${slug}`);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
   },
 
-  async create(post: Post): Promise<Post> {
-    const response = await fetch(`${API_BASE_URL}/posts`, {
-      ...fetchConfig,
-      method: "POST",
-      body: JSON.stringify(post),
-    });
-    return await handleResponse(response);
+  async create(post: Omit<Post, "id" | "slug">): Promise<Post> {
+    try {
+      const response = await api.post<Post>("/posts", post);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
   },
 
   async update(slug: string, post: Partial<Post>): Promise<Post> {
-    const response = await fetch(`${API_BASE_URL}/posts/${slug}`, {
-      ...fetchConfig,
-      method: "PUT",
-      body: JSON.stringify(post),
-    });
-    return await handleResponse(response);
+    try {
+      const response = await api.put<Post>(`/posts/${slug}`, post);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
   },
 
-  async delete(slug: string): Promise<{ success: boolean }> {
-    const response = await fetch(`${API_BASE_URL}/posts/${slug}`, {
-      ...fetchConfig,
-      method: "DELETE",
-    });
-    return handleResponse<{ success: boolean }>(response);
+  async delete(slug: string): Promise<{ message: string }> {
+    try {
+      const response = await api.delete<{ message: string }>(`/posts/${slug}`);
+      return response.data;
+    } catch (error) {
+      return handleError(error);
+    }
   },
 };

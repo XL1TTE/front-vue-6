@@ -3,6 +3,7 @@ import { useRoute, useRouter } from "vue-router";
 import { usePost } from "../composables/usePosts.ts";
 import { useToaster } from "../composables/useToaster.ts";
 import PostForm from "../components/forms/PostForm.vue";
+import type { Post } from "../types/posts.ts";
 
 const route = useRoute();
 const router = useRouter();
@@ -15,15 +16,16 @@ const { success: notifySuccess, error: notifyError } = useToaster(
   "top-right",
 );
 
-const handleSuccess = () => {
+const handleSuccess = (post: Post) => {
   notifySuccess(`Post was successfully updated`);
-  router.push({ name: "posts" });
+  router.push({ name: "post-details", params: { slug: post.slug } });
+};
+const handleCancel = (post: Post) => {
+  router.push({ name: "post-details", params: { slug: post.slug } });
 };
 
 const handleError = (error: any) => {
-  notifyError(
-    `Failed to delete "$Post creation:": ${error.message || "Unknown error"}`,
-  );
+  notifyError(`Failed to update post:": ${error || "Unknown error"}`);
 };
 </script>
 <template>
@@ -44,7 +46,7 @@ const handleError = (error: any) => {
         <PostForm
           :post="post"
           mode="edit"
-          @cancel="router.push({ name: 'posts' })"
+          @cancel="handleCancel"
           @error="handleError"
           @success="handleSuccess"
         />

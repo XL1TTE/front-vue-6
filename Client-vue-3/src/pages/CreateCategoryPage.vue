@@ -10,14 +10,12 @@ const { success: notifySuccess, error: notifyError } = useToaster(
 );
 
 const handleSuccess = () => {
-  notifySuccess("Категория успешно создана");
+  notifySuccess(`Category was successfully created!`);
   router.push({ name: "categories" });
 };
 
 const handleError = (error: any) => {
-  notifyError(
-    `Ошибка создания категории: ${error.message || "Неизвестная ошибка"}`,
-  );
+  notifyError(`Failed to create category:": ${error || "Unknown error"}`);
 };
 
 const handleCancel = () => {

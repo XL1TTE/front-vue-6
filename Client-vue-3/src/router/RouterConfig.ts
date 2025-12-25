@@ -6,6 +6,7 @@ import CreatePostPage from "../pages/CreatePostPage.vue";
 import UpdatePostPage from "../pages/UpdatePostPage.vue";
 import CreateCategoryPage from "../pages/CreateCategoryPage.vue";
 import EditCategoryPage from "../pages/EditCategoryPage.vue";
+import PostDetailsPage from "../pages/PostDetailsPage.vue";
 
 const routes = [
   { path: "/", component: HomePage },
@@ -25,6 +26,12 @@ const routes = [
   {
     path: "/posts/create",
     component: CreatePostPage,
+  },
+  {
+    path: "/posts/:slug",
+    name: "post-details",
+    component: PostDetailsPage,
+    props: true,
   },
   {
     path: "/posts/edit/:slug",
