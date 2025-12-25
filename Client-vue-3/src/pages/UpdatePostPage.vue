@@ -8,8 +8,6 @@ const route = useRoute();
 const router = useRouter();
 const slug = route.params.slug as string;
 
-console.log(slug);
-
 const { data: post, isLoading } = usePost(slug);
 
 const { success: notifySuccess, error: notifyError } = useToaster(
@@ -46,6 +44,7 @@ const handleError = (error: any) => {
         <PostForm
           :post="post"
           mode="edit"
+          @cancel="router.push({ name: 'posts' })"
           @error="handleError"
           @success="handleSuccess"
         />

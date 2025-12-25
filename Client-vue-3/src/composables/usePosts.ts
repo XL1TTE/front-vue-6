@@ -1,17 +1,20 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/vue-query";
 import type { Post } from "../types/posts.ts";
 import { postsApi } from "../api/postsApi.ts";
+import type { Ref } from "vue";
 
 export const postsQueryKeys = {
   all: ["posts"] as const,
   lists: () => ["posts", "list"] as const,
+  lists_search: (search?: Ref<string>) =>
+    ["posts", "list", { search }] as const,
   detail_slug: (slug: string) => ["posts", "detail", slug] as const,
 };
 
-export const usePosts = () => {
+export const usePosts = (search?: Ref<string>) => {
   return useQuery<Post[]>({
-    queryKey: postsQueryKeys.lists(),
-    queryFn: () => postsApi.getAll(),
+    queryKey: postsQueryKeys.lists_search(search),
+    queryFn: () => postsApi.getAll(search?.value),
   });
 };
 

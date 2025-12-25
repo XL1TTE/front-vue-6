@@ -2,6 +2,7 @@
 import { useRouter } from "vue-router";
 import PostForm from "../components/forms/PostForm.vue";
 import { useToaster } from "../composables/useToaster.ts";
+import type { Post } from "../types/posts.ts";
 
 const router = useRouter();
 
@@ -10,14 +11,14 @@ const { success: notifySuccess, error: notifyError } = useToaster(
   "top-right",
 );
 
-const handleSuccess = () => {
+const handleSuccess = (post: Post) => {
   notifySuccess(`Post was successfully created`);
-  router.push({ name: "posts" });
+  router.push({ name: "edit-post", params: { slug: post.slug } });
 };
 
 const handleError = (error: any) => {
   notifyError(
-    `Failed to delete "$Post creation:": ${error.message || "Unknown error"}`,
+    `Failed to create post:": ${error || "Unknown error"}`,
   );
 };
 </script>
@@ -33,7 +34,12 @@ const handleError = (error: any) => {
       </div>
 
       <div class="bg-white rounded-lg shadow p-6">
-        <PostForm mode="create" @error="handleError" @success="handleSuccess" />
+        <PostForm
+          mode="create"
+          @cancel="router.push({ name: 'posts' })"
+          @error="handleError"
+          @success="handleSuccess"
+        />
       </div>
     </div>
   </div>

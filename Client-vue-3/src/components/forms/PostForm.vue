@@ -11,7 +11,7 @@ interface Props {
   mode?: "create" | "edit";
 }
 interface Emits {
-  success: [];
+  success: [post: Post];
   cancel: [];
   error: [error: any];
 }
@@ -54,11 +54,11 @@ const handleSubmit = async () => {
 
   if (mode === "create") {
     await createPostMutation(form.value, {
-      onSuccess: () => {
-        emits("success");
+      onSuccess: (post: Post) => {
+        emits("success", post);
       },
-      onError: (error: any) => {
-        emits("error", error);
+      onError: (error: Error) => {
+        emits("error", error.message);
       },
     });
   } else {
@@ -68,8 +68,8 @@ const handleSubmit = async () => {
         data: form.value,
       },
       {
-        onSuccess: () => {
-          emits("success");
+        onSuccess: (post: Post) => {
+          emits("success", post);
         },
         onError: (error: any) => {
           emits("error", error);
@@ -159,6 +159,7 @@ watch(
           :src="previewImageUrl"
           alt="Preview"
           class="max-w-xs rounded-md shadow"
+          crossorigin="anonymous"
         />
       </div>
     </div>
@@ -198,6 +199,7 @@ watch(
       <button
         class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition"
         type="button"
+        @click="emits('cancel')"
       >
         Отмена
       </button>

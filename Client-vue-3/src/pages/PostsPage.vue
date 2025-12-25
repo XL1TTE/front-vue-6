@@ -1,16 +1,36 @@
 <script lang="ts" setup>
 import BaseTable from "../components/BaseTable.vue";
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import { useFilter } from "../composables/useFilter.ts";
 import InputFilter from "../components/InputFilter.vue";
 import { createToaster } from "@meforma/vue-toaster";
 import type { Post } from "../types/posts.ts";
+import { useRoute, useRouter } from "vue-router";
 import { useDeletePost, usePosts } from "../composables/usePosts.ts";
-import { router } from "../router/RouterConfig.ts";
-import { useCategory } from "../composables/useCategories.ts";
+import { useDebounceFn } from "@vueuse/core";
 
-const { data: posts, isSuccess, isLoading } = usePosts();
+const route = useRoute();
+const router = useRouter();
 
+const searchQuery = ref(route.query.search as string || "");
+
+const debouncedSearch = useDebounceFn((value: string) => {
+  router.replace({
+    query: {
+      ...route.query,
+      search: value.trim() || undefined,
+    },
+  });
+}, 300);
+
+watch(
+  () => searchQuery.value,
+  (newValue) => {
+    debouncedSearch(newValue);
+  },
+);
+
+const { data: posts, isSuccess, isLoading } = usePosts(searchQuery);
 const { mutate: deletePost } = useDeletePost();
 
 const allPosts = computed<Post[]>(() => posts.value || []);
@@ -59,11 +79,6 @@ const {
 }>();
 
 const filteredPosts = useFiltered(allPosts);
-
-const getCategory = (id: number) => {
-  const { data: category } = useCategory(id);
-  return category.value;
-};
 </script>
 
 <template>
@@ -76,6 +91,53 @@ const getCategory = (id: number) => {
 
       <header class="mb-8">
         <h1 class="text-3xl font-bold text-gray-800 mb-2">Посты</h1>
+
+        <div class="relative w-full max-w-md mt-4">
+          <div class="relative">
+            <input
+              v-model="searchQuery"
+              class="w-full px-4 py-2 pl-10 pr-4 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              placeholder="Поиск по названию..."
+              type="text"
+            />
+            <div
+              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+            >
+              <svg
+                class="w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                />
+              </svg>
+            </div>
+            <button
+              v-if="searchQuery"
+              class="absolute inset-y-0 right-0 pr-3 flex items-center"
+              @click="searchQuery = ''"
+            >
+              <svg
+                class="w-4 h-4 text-gray-400 hover:text-gray-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  d="M6 18L18 6M6 6l12 12"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
       </header>
 
       <div
@@ -174,12 +236,6 @@ const getCategory = (id: number) => {
                 </svg>
               </div>
             </div>
-          </div>
-        </template>
-        
-        <template #category_id="{ value }">
-          <div class="flex flex-row items-center space-y-1 gap-2">
-            {{ getCategory(value as number)?.name }}
           </div>
         </template>
 

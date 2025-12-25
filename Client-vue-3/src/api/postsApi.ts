@@ -11,18 +11,21 @@ const fetchConfig: RequestInit = {
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(
-      errorData.message || `HTTP error! status: ${response.status}`,
-    );
+    const message = `HTTP error! status: ${response.status}`;
+    throw new Error(message);
   }
   return response.json();
 };
 
 export const postsApi = {
-  async getAll(): Promise<Post[]> {
-    const response = await fetch(`${API_BASE_URL}/posts`, fetchConfig);
+  async getAll(search?: string): Promise<Post[]> {
+    const url = new URL(`${API_BASE_URL}/posts`);
 
+    if (search && search.trim()) {
+      url.searchParams.append("search", search.trim());
+    }
+
+    const response = await fetch(url.toString(), fetchConfig);
     return handleResponse(response);
   },
 

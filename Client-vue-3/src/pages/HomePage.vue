@@ -42,7 +42,7 @@
                     />
                   </svg>
                   <span class="text-sm text-gray-600">
-                    <span v-if="posts!.length > 0">
+                    <span v-if="safePosts.length > 0">
                       {{ getPostsFromLastWeek().length }} новых за неделю
                     </span>
                     <span v-else>Нет данных</span>
@@ -74,7 +74,7 @@
               <div>
                 <p class="text-sm font-medium text-gray-600">Категории</p>
                 <p class="text-3xl font-bold text-gray-900 mt-2">
-                  {{ categories!.length }}
+                  {{ safeCategories.length }}
                 </p>
                 <div class="mt-3">
                   <span class="text-sm text-gray-600">
@@ -184,7 +184,7 @@
                 Статистика по категориям
               </h2>
               <span class="text-sm text-gray-500">
-                Всего: {{ categories!.length }} категорий
+                Всего: {{ safeCategories.length }} категорий
               </span>
             </div>
 
@@ -232,7 +232,7 @@
               </div>
 
               <div
-                v-if="categories!.length === 0"
+                v-if="safeCategories.length === 0"
                 class="text-center py-12 text-gray-500"
               >
                 <svg
@@ -428,18 +428,23 @@ import { computed } from "vue";
 import { usePosts } from "../composables/usePosts.ts";
 import { useCategories } from "../composables/useCategories.ts";
 
-const { data: posts } = usePosts();
-const { data: categories } = useCategories();
+const { isSuccess: isPostsLoaded, data: posts } = usePosts();
+const { isSuccess: isCategoriesLoaded, data: categories } = useCategories();
 
-const totalPostsCount = computed(() => posts.value?.length);
+const safePosts = computed(() => posts.value ?? []);
+const safeCategories = computed(() => categories.value ?? []);
+
+const isDataLoaded = computed(() => isPostsLoaded && isCategoriesLoaded);
+
+const totalPostsCount = computed(() => safePosts.value?.length);
 const postsWithCategoriesCount = computed(() => {
-  return posts.value?.filter((post) => post.category_id).length;
+  return safePosts.value?.filter((post) => post.category_id).length;
 });
 
 const categoriesWithPostCount = computed(() => {
-  return categories
+  return safeCategories
     .value!.map((category) => {
-      const postCount = posts.value!.filter(
+      const postCount = safePosts.value!.filter(
         (post) => post.category_id === category.id,
       ).length;
       return {
@@ -456,8 +461,8 @@ const mostActiveCategory = computed(() => {
 });
 
 const postsPerCategory = computed(() => {
-  if (categories.value!.length === 0) return 0;
-  return postsWithCategoriesCount.value! / categories.value!.length;
+  if (safeCategories.value!.length === 0) return 0;
+  return postsWithCategoriesCount.value / safeCategories.value.length;
 });
 
 const getCategoryPercentage = (count: number) => {
@@ -466,6 +471,6 @@ const getCategoryPercentage = (count: number) => {
 };
 
 const getPostsFromLastWeek = () => {
-  return posts.value!.slice(0, Math.min(3, posts.value!.length));
+  return safePosts.value.slice(0, Math.min(3, safePosts.value.length));
 };
 </script>
